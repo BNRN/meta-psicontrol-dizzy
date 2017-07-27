@@ -1,0 +1,49 @@
+#!/bin/sh -e
+#
+# rc.local
+#
+# This script is executed at the end of each multiuser runlevel.
+# Make sure that the script will "exit 0" on success or any other
+# value on error.
+#
+# In order to enable or disable this script just change the execution
+# bits.
+#
+# By default this script does nothing.
+ 
+# start the touchscreen driver
+/usr/bin/eGTouchD &
+
+# prevent the screen from going black
+echo -e '\033[9;0]' > /dev/tty1
+
+# wait to make sure the touchscreen driver is fully started and provides /dev/input/touchscreen0
+sleep 1s
+
+# hide the mouse cursor
+export QT_QPA_EGLFS_HIDECURSOR=1
+
+# hide the keyboard cursor
+echo 0 > /sys/class/graphics/fbcon/cursor_blink
+
+# set the correct touchscreen device for Tslib
+export TSLIB_TSDEVICE=/dev/input/touchscreen0
+
+# set max brightness
+echo 7 > /sys/class/backlight/backlight.19/brightness
+
+#mfill -b 0x2640008 -p 0x00020001 -l 0x4 -4
+
+# launch the Qt5 application using the OpenGL ES 2.0 driver and the Tslib plugin
+#PetersimeColorTest  -platform eglfs -plugin Tslib &
+
+#Qt5_CinematicExperience -platform eglfs -plugin Tslib &
+cd /usr/share/qtdemo-thetford-1.0
+./ThetfordDemo  -platform eglfs -plugin Tslib &
+
+cd /usr/share/vlan-scripts
+mount -o remount,rw /
+./petersime-vlan.sh
+mount -o remount,ro /
+#mfill -b 0x2640008 -p 0x00020001 -l 0x4 -4
+exit 0
